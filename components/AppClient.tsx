@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import EarMap from "./EarMap"; // ✅ 必杀：相对路径，100% 指向 components/EarMap.tsx
+import EarMapRaw, { type EarMapProps } from "./EarMap"; // ✅ 相对路径 + 导出 props type
 import { EAR_POINTS } from "@/lib/earPoints";
 import type { EarPoint } from "@/lib/earPoints";
 
@@ -9,6 +9,9 @@ type Props = {
   viewBox: string;
   baseInnerSvg: string;
 };
+
+// ✅ 彻底兜底：强制 EarMap 组件类型带 props
+const EarMap = EarMapRaw as unknown as React.ComponentType<EarMapProps>;
 
 export default function AppClient({ viewBox, baseInnerSvg }: Props) {
   const points: EarPoint[] = EAR_POINTS;
@@ -19,10 +22,7 @@ export default function AppClient({ viewBox, baseInnerSvg }: Props) {
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return points;
-    return points.filter((p) => {
-      const hay = `${p.zh} ${p.en}`.toLowerCase();
-      return hay.includes(s);
-    });
+    return points.filter((p) => (`${p.zh} ${p.en}`).toLowerCase().includes(s));
   }, [q, points]);
 
   return (

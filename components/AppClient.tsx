@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import EarMapRaw, { type EarMapProps } from "./EarMap"; // ✅ 相对路径 + 导出 props type
+import EarMap from "./EarMap"; // 相对路径，别再让 TS 乱解析
 import { EAR_POINTS } from "@/lib/earPoints";
 import type { EarPoint } from "@/lib/earPoints";
 
@@ -10,12 +10,8 @@ type Props = {
   baseInnerSvg: string;
 };
 
-// ✅ 彻底兜底：强制 EarMap 组件类型带 props
-const EarMap = EarMapRaw as unknown as React.ComponentType<EarMapProps>;
-
 export default function AppClient({ viewBox, baseInnerSvg }: Props) {
   const points: EarPoint[] = EAR_POINTS;
-
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [q, setQ] = useState("");
 
@@ -90,14 +86,16 @@ export default function AppClient({ viewBox, baseInnerSvg }: Props) {
           background: "white",
         }}
       >
-        <div style={{ width: "100%", aspectRatio: "3 / 4" }}>
-          <EarMap
-            viewBox={viewBox}
-            baseInnerSvg={baseInnerSvg}
-            points={points}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-          />
+        <div style={{ width: "100%", maxWidth: 520 }}>
+          <div style={{ width: "100%", aspectRatio: "3 / 4" }}>
+            <EarMap
+              viewBox={viewBox}
+              baseInnerSvg={baseInnerSvg}
+              points={points}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+            />
+          </div>
         </div>
       </section>
 
@@ -105,6 +103,7 @@ export default function AppClient({ viewBox, baseInnerSvg }: Props) {
         .point {
           fill: #ef4444;
           cursor: pointer;
+          opacity: 0.95;
         }
         .point.selected {
           fill: #0ea5e9;
@@ -112,8 +111,9 @@ export default function AppClient({ viewBox, baseInnerSvg }: Props) {
         .pointRing {
           fill: none;
           stroke: #0ea5e9;
-          stroke-width: 3;
+          stroke-width: 2.5;
           pointer-events: none;
+          opacity: 0.9;
         }
       `}</style>
     </div>

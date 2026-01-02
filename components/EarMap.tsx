@@ -8,14 +8,27 @@ type Props = {
   points: EarPoint[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+
+  // ✅ 新增：底图调整
+  earScale?: number;        // e.g. 1.08 ~ 1.18
+  earTranslateX?: number;   // px, e.g. -6
+  earTranslateY?: number;   // px, e.g. 0
 };
 
-export default function EarMap({ viewBox, points, selectedId, onSelect }: Props) {
+export default function EarMap({
+  viewBox,
+  points,
+  selectedId,
+  onSelect,
+  earScale = 1.12,
+  earTranslateX = 0,
+  earTranslateY = 0,
+}: Props) {
   const selected = points.find((p) => p.id === selectedId);
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
-      {/* 底图：耳朵轮廓（稳定显示，不吃 SVG innerHTML/namespace 的坑） */}
+    <div style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden" }}>
+      {/* 底图：耳朵轮廓（放大 + 微调） */}
       <img
         src="/ear_outline.svg"
         alt="ear outline"
@@ -25,12 +38,14 @@ export default function EarMap({ viewBox, points, selectedId, onSelect }: Props)
           width: "100%",
           height: "100%",
           objectFit: "contain",
-          // 如果你觉得太淡，这里可以加滤镜让它更黑：
-          // filter: "contrast(200%) brightness(0%)",
+          transform: `translate(${earTranslateX}px, ${earTranslateY}px) scale(${earScale})`,
+          transformOrigin: "center center",
+          // 如果你想把白线变黑，打开下面这行（粗暴但有效）
+          // filter: "contrast(220%) brightness(0%)",
         }}
       />
 
-      {/* 点层：SVG 覆盖 */}
+      {/* 点层：SVG 覆盖（不动坐标） */}
       <svg
         viewBox={viewBox}
         preserveAspectRatio="xMidYMid meet"
@@ -46,7 +61,6 @@ export default function EarMap({ viewBox, points, selectedId, onSelect }: Props)
           const isSel = p.id === selectedId;
           return (
             <g key={p.id} onClick={() => onSelect(p.id)} style={{ cursor: "pointer" }}>
-              {/* 点变小：r=5 */}
               <circle className={isSel ? "point selected" : "point"} cx={p.x} cy={p.y} r={5} />
               {isSel && <circle className="pointRing" cx={p.x} cy={p.y} r={9} />}
               <title>
@@ -77,4 +91,5 @@ export default function EarMap({ viewBox, points, selectedId, onSelect }: Props)
     </div>
   );
 }
+
 

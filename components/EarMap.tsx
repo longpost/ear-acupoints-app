@@ -1,122 +1,60 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import EarMap from "./EarMap"; // ✅ 必杀：相对路径，100% 指向 components/EarMap.tsx
-import { EAR_POINTS } from "@/lib/earPoints";
+import React from "react";
 import type { EarPoint } from "@/lib/earPoints";
 
-type Props = {
+export type EarMapProps = {
   viewBox: string;
-  baseInnerSvg: string;
+  baseInnerSvg: string; // inner markup (no outer <svg>)
+  points: EarPoint[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
 };
 
-export default function AppClient({ viewBox, baseInnerSvg }: Props) {
-  const points: EarPoint[] = EAR_POINTS;
-
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [q, setQ] = useState("");
-
-  const filtered = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    if (!s) return points;
-    return points.filter((p) => {
-      const hay = `${p.zh} ${p.en}`.toLowerCase();
-      return hay.includes(s);
-    });
-  }, [q, points]);
+export default function EarMap({
+  viewBox,
+  baseInnerSvg,
+  points,
+  selectedId,
+  onSelect,
+}: EarMapProps) {
+  const selected = points.find((p) => p.id === selectedId);
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "360px 1fr",
-        gap: 16,
-        alignItems: "start",
-      }}
-    >
-      <aside
-        style={{
-          border: "1px solid #e5e7eb",
-          borderRadius: 12,
-          padding: 12,
-          background: "white",
-        }}
-      >
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="搜索耳穴 / Search"
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            marginBottom: 12,
-            borderRadius: 10,
-            border: "1px solid #e5e7eb",
-          }}
-        />
+    <svg viewBox={viewBox} role="img" aria-label="Auricular acupoints map (educational)">
+      <g dangerouslySetInnerHTML={{ __html: baseInnerSvg }} />
 
-        <div style={{ maxHeight: "70vh", overflow: "auto" }}>
-          {filtered.map((p) => {
-            const active = p.id === selectedId;
-            return (
-              <button
-                key={p.id}
-                onClick={() => setSelectedId(p.id)}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "10px 10px",
-                  marginBottom: 8,
-                  borderRadius: 10,
-                  border: "1px solid #e5e7eb",
-                  background: active ? "#111827" : "white",
-                  color: active ? "white" : "#111827",
-                  cursor: "pointer",
-                }}
-              >
-                <div style={{ fontWeight: 800 }}>{p.zh}</div>
-                <div style={{ fontSize: 12, opacity: 0.7 }}>{p.en}</div>
-              </button>
-            );
-          })}
-        </div>
-      </aside>
+      {points.map((p) => {
+        const isSel = p.id === selectedId;
+        return (
+          <g key={p.id} onClick={() => onSelect(p.id)} style={{ cursor: "pointer" }}>
+            <circle className={isSel ? "point selected" : "point"} cx={p.x} cy={p.y} r={10} />
+            {isSel && <circle className="pointRing" cx={p.x} cy={p.y} r={16} />}
+            <title>
+              {p.zh} / {p.en}
+            </title>
+          </g>
+        );
+      })}
 
-      <section
-        style={{
-          border: "1px solid #e5e7eb",
-          borderRadius: 12,
-          padding: 12,
-          background: "white",
-        }}
-      >
-        <div style={{ width: "100%", aspectRatio: "3 / 4" }}>
-          <EarMap
-            viewBox={viewBox}
-            baseInnerSvg={baseInnerSvg}
-            points={points}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
+      {selected ? (
+        <g>
+          <rect
+            x={selected.x + 14}
+            y={selected.y - 22}
+            width={210}
+            height={34}
+            rx={8}
+            ry={8}
+            fill="white"
+            opacity={0.9}
           />
-        </div>
-      </section>
-
-      <style jsx global>{`
-        .point {
-          fill: #ef4444;
-          cursor: pointer;
-        }
-        .point.selected {
-          fill: #0ea5e9;
-        }
-        .pointRing {
-          fill: none;
-          stroke: #0ea5e9;
-          stroke-width: 3;
-          pointer-events: none;
-        }
-      `}</style>
-    </div>
+          <text x={selected.x + 22} y={selected.y + 1} fontSize="14" fontFamily="Arial" fill="#111827">
+            {selected.zh} / {selected.en}
+          </text>
+        </g>
+      ) : null}
+    </svg>
   );
 }
 

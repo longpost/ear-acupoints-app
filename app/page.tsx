@@ -1,13 +1,23 @@
-// app/page.tsx (SERVER COMPONENT)
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import AppClient from "@/components/AppClient";
 
 function extractSvg(svgText: string): { viewBox: string; inner: string } {
-  // match outer <svg ... viewBox="..." ...> ... </svg>
-  const m = svgText.match(/<svg[^>]*viewBox="([^"]+)"[^>]*>([\s\S]*?)<\/svg>/i);
-  if (!m) return { viewBox: "0 0 800 1200", inner: "" };
-  return { viewBox: m[1], inner: m[2] };
+  // 1) viewBox
+  const viewBoxMatch = svgText.match(/viewBox="([^"]+)"/i);
+  const viewBox = viewBoxMatch?.[1] ?? "0 0 744.09 1052.4";
+
+  // 2) find the end of the opening tag
+  const start = svgText.indexOf(">"); // first '>' after <ns0:svg ...>
+  // 3) find the closing tag for *any* namespaced svg, e.g. </svg> or </ns0:svg>
+  const end = svgText.search(/<\/[a-z0-9_.:-]*svg>\s*$/i);
+
+  const inner =
+    start !== -1 && end !== -1 && end > start
+      ? svgText.slice(start + 1, end)
+      : svgText;
+
+  return { viewBox, inner };
 }
 
 export default function Page() {
@@ -15,19 +25,5 @@ export default function Page() {
   const svgText = fs.readFileSync(svgPath, "utf8");
   const { viewBox, inner } = extractSvg(svgText);
 
-  // 强制让底图可见（黑色线条、无填充）
-  const baseInnerSvg =
-    `<g style="stroke:#111827;stroke-width:1.25;fill:none;vector-effect:non-scaling-stroke;">` +
-    inner +
-    `</g>`;
-
-  return (
-    <main style={{ maxWidth: 1200, margin: "0 auto", padding: 16 }}>
-      <h1 style={{ margin: "0 0 12px 0", fontSize: 20, fontWeight: 900 }}>
-        Ear Acupoints (Educational)
-      </h1>
-
-      <AppClient viewBox={viewBox} baseInnerSvg={baseInnerSvg} />
-    </main>
-  );
+  return <AppClient viewBox={viewBox} baseInnerSvg={inner} />;
 }

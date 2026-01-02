@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import EarMap from "@/components/EarMap"; // ✅ 关键修复：default import
+import EarMap from "./EarMap"; // ✅ 必杀：相对路径，100% 指向 components/EarMap.tsx
 import { EAR_POINTS } from "@/lib/earPoints";
 import type { EarPoint } from "@/lib/earPoints";
 
@@ -17,13 +17,12 @@ export default function AppClient({ viewBox, baseInnerSvg }: Props) {
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
-    const s = q.trim();
+    const s = q.trim().toLowerCase();
     if (!s) return points;
-    return points.filter(
-      (p) =>
-        p.zh.includes(s) ||
-        p.en.toLowerCase().includes(s.toLowerCase())
-    );
+    return points.filter((p) => {
+      const hay = `${p.zh} ${p.en}`.toLowerCase();
+      return hay.includes(s);
+    });
   }, [q, points]);
 
   return (
@@ -35,7 +34,6 @@ export default function AppClient({ viewBox, baseInnerSvg }: Props) {
         alignItems: "start",
       }}
     >
-      {/* 左侧列表 */}
       <aside
         style={{
           border: "1px solid #e5e7eb",
@@ -84,7 +82,6 @@ export default function AppClient({ viewBox, baseInnerSvg }: Props) {
         </div>
       </aside>
 
-      {/* 右侧耳朵图 */}
       <section
         style={{
           border: "1px solid #e5e7eb",
@@ -122,3 +119,4 @@ export default function AppClient({ viewBox, baseInnerSvg }: Props) {
     </div>
   );
 }
+

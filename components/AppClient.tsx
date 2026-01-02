@@ -112,7 +112,7 @@ export default function AppClient({ viewBox }: Props) {
                 selectedId={selectedId}
                 onSelect={setSelectedId}
                 // ✅ 这里调耳朵大小/位置
-                earScale={1.12}
+                earScale={1.8}
                 earTranslateX={0}
                 earTranslateY={0}
               />
